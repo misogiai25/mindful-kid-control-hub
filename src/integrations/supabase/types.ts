@@ -9,7 +9,203 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      alerts: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          message: string
+          read: boolean
+          timestamp: string
+          type: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          message: string
+          read?: boolean
+          timestamp?: string
+          type: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          read?: boolean
+          timestamp?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alerts_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blocked_websites: {
+        Row: {
+          child_id: string
+          created_at: string
+          id: string
+          website: string
+        }
+        Insert: {
+          child_id: string
+          created_at?: string
+          id?: string
+          website: string
+        }
+        Update: {
+          child_id?: string
+          created_at?: string
+          id?: string
+          website?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blocked_websites_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      children: {
+        Row: {
+          age: number | null
+          avatar: string | null
+          created_at: string
+          daily_time_limit: number
+          device_id: string
+          id: string
+          is_locked: boolean
+          is_online: boolean
+          name: string
+          parent_id: string
+          updated_at: string
+          used_time: number
+        }
+        Insert: {
+          age?: number | null
+          avatar?: string | null
+          created_at?: string
+          daily_time_limit?: number
+          device_id: string
+          id?: string
+          is_locked?: boolean
+          is_online?: boolean
+          name: string
+          parent_id: string
+          updated_at?: string
+          used_time?: number
+        }
+        Update: {
+          age?: number | null
+          avatar?: string | null
+          created_at?: string
+          daily_time_limit?: number
+          device_id?: string
+          id?: string
+          is_locked?: boolean
+          is_online?: boolean
+          name?: string
+          parent_id?: string
+          updated_at?: string
+          used_time?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "children_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          avatar?: string | null
+          created_at?: string
+          email: string
+          id: string
+          name: string
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          avatar?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      usage_logs: {
+        Row: {
+          app: string | null
+          category: string
+          child_id: string
+          created_at: string
+          date: string
+          duration: number
+          end_time: string
+          id: string
+          start_time: string
+          website: string | null
+        }
+        Insert: {
+          app?: string | null
+          category: string
+          child_id: string
+          created_at?: string
+          date?: string
+          duration: number
+          end_time?: string
+          id?: string
+          start_time?: string
+          website?: string | null
+        }
+        Update: {
+          app?: string | null
+          category?: string
+          child_id?: string
+          created_at?: string
+          date?: string
+          duration?: number
+          end_time?: string
+          id?: string
+          start_time?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_logs_child_id_fkey"
+            columns: ["child_id"]
+            isOneToOne: false
+            referencedRelation: "children"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

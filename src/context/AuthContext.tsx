@@ -1,11 +1,13 @@
 
-import { User } from "@/types/kidsafe";
+import { User as KidsafeUser } from "@/types/kidsafe";
 import { createContext, useContext, useEffect, useState } from "react";
-import { currentUser } from "@/data/mockData";
 import { useToast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Session, User } from "@supabase/supabase-js";
+import { useNavigate } from "react-router-dom";
 
 interface AuthContextType {
-  user: User | null;
+  user: KidsafeUser | null;
   isLoading: boolean;
   isParent: boolean;
   isChild: boolean;
@@ -17,42 +19,104 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<KidsafeUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
-  // Check if user is already authenticated
   useEffect(() => {
-    const storedUser = localStorage.getItem("kidsafe_user");
-    
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        if (session?.user) {
+          fetchUserProfile(session.user);
+        } else {
+          setUser(null);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        fetchUserProfile(session.user);
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
+
+  const fetchUserProfile = async (authUser: User) => {
+    try {
+      setIsLoading(true);
+      
+      // First, check if it's a parent login
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+      
+      if (profile) {
+        // Parent login
+        setUser({
+          id: profile.id,
+          email: profile.email,
+          name: profile.name,
+          role: profile.role,
+          avatar: profile.avatar
+        });
+      } else if (error) {
+        // Check if it's a child login (stored in local storage)
+        const childData = localStorage.getItem("kidsafe_child_user");
+        if (childData) {
+          const childUser = JSON.parse(childData);
+          setUser(childUser);
+        } else {
+          console.error("Error fetching user profile:", error);
+          toast({
+            title: "Error loading profile",
+            description: "There was an error loading your profile",
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error in fetchUserProfile:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     try {
       setIsLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      // In a real app, this would validate credentials with a backend
-      if (email === "parent@example.com" && password === "password") {
-        setUser(currentUser);
-        localStorage.setItem("kidsafe_user", JSON.stringify(currentUser));
-        toast({
-          title: "Logged in successfully",
-          description: `Welcome back, ${currentUser.name}`,
-        });
-      } else {
+      if (error) {
         toast({
           title: "Login failed",
-          description: "Invalid email or password",
+          description: error.message,
           variant: "destructive",
         });
+        return;
       }
+      
+      // User will be set by the onAuthStateChange listener
+      toast({
+        title: "Logged in successfully",
+        description: `Welcome back, ${data.user.email}`,
+      });
+      
+      navigate('/');
     } catch (error) {
       console.error("Login error:", error);
       toast({
@@ -69,26 +133,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       setIsLoading(true);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // In a real app, this would validate credentials with a backend
+      // For simplicity, child login is still mocked for now
+      // In a real-world scenario, this would validate against a pin stored in the database
       if (pin === "1234") {
-        // Find the child profile from our mock data
-        const childProfile = {
+        // Get child data from our database
+        const { data: childData, error } = await supabase
+          .from('children')
+          .select('*')
+          .eq('id', childId)
+          .single();
+        
+        if (error || !childData) {
+          toast({
+            title: "Login failed",
+            description: "Invalid child profile",
+            variant: "destructive",
+          });
+          return;
+        }
+        
+        const childProfile: KidsafeUser = {
           id: childId,
-          email: `child_${childId}@example.com`,
-          name: childId === "c1" ? "Emma" : childId === "c2" ? "Jack" : "Sophia",
+          email: `child_${childId}@example.com`, // Placeholder
+          name: childData.name,
           role: "child" as const,
-          avatar: `/avatar-${childId}.png`
+          avatar: childData.avatar
         };
         
+        // Store in local storage for persisting child sessions
+        localStorage.setItem("kidsafe_child_user", JSON.stringify(childProfile));
         setUser(childProfile);
-        localStorage.setItem("kidsafe_user", JSON.stringify(childProfile));
+        
         toast({
           title: "Logged in successfully",
           description: `Welcome, ${childProfile.name}`,
         });
+        
+        navigate('/child');
       } else {
         toast({
           title: "Login failed",
@@ -108,9 +189,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Check if it's a child logout
+    if (user?.role === 'child') {
+      localStorage.removeItem("kidsafe_child_user");
+      setUser(null);
+      navigate('/login');
+      toast({
+        title: "Logged out",
+        description: "You have been logged out successfully",
+      });
+      return;
+    }
+    
+    // It's a parent logout
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem("kidsafe_user");
+    navigate('/login');
     toast({
       title: "Logged out",
       description: "You have been logged out successfully",
