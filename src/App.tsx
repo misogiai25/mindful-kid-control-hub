@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/context/AuthContext";
 import { KidSafeProvider } from "@/context/KidSafeContext";
 
@@ -26,19 +26,17 @@ const App = () => (
         <KidSafeProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<AppLayout />}>
-                <Route index element={<Index />} />
-                <Route path="child/:id" element={<ChildProfile />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="schedule" element={<Schedule />} />
-                <Route path="child" element={<ChildDashboard />} />
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/" element={<AppLayout />}>
+              <Route index element={<Index />} />
+              <Route path="child/:id" element={<ChildProfile />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="schedule" element={<Schedule />} />
+              <Route path="child" element={<ChildDashboard />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </KidSafeProvider>
       </AuthProvider>
     </TooltipProvider>
