@@ -12,6 +12,9 @@ interface AuthContextType {
   isParent: boolean;
   isChild: boolean;
   login: (email: string, password: string) => Promise<void>;
+  signup: (email: string, name: string, password: string) => Promise<void>;
+  requestOTP: (email: string) => Promise<void>;
+  verifyOTP: (email: string, token: string) => Promise<void>;
   logout: () => void;
   childLogin: (pin: string, childId: string) => Promise<void>;
 }
@@ -129,6 +132,103 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const signup = async (email: string, name: string, password: string) => {
+    try {
+      setIsLoading(true);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+          },
+        }
+      });
+      
+      if (error) {
+        toast({
+          title: "Signup failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      toast({
+        title: "Account created",
+        description: "Please verify your email to continue",
+      });
+      
+      return data;
+    } catch (error) {
+      console.error("Signup error:", error);
+      toast({
+        title: "Signup failed",
+        description: "An error occurred during signup",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const requestOTP = async (email: string) => {
+    try {
+      setIsLoading(true);
+      
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: email,
+      });
+      
+      if (error) {
+        toast({
+          title: "Failed to send verification email",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+    } catch (error) {
+      console.error("Error sending OTP:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const verifyOTP = async (email: string, token: string) => {
+    try {
+      setIsLoading(true);
+      
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token,
+        type: 'signup',
+      });
+      
+      if (error) {
+        toast({
+          title: "Verification failed",
+          description: error.message,
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      // On successful verification, the user will be automatically logged in
+      // and the onAuthStateChange listener will update the user state
+      
+      return true;
+    } catch (error) {
+      console.error("OTP verification error:", error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const childLogin = async (pin: string, childId: string) => {
     try {
       setIsLoading(true);
@@ -220,6 +320,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         isParent: user?.role === "parent",
         isChild: user?.role === "child",
         login,
+        signup,
+        requestOTP,
+        verifyOTP,
         logout,
         childLogin,
       }}
