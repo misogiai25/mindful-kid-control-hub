@@ -1,6 +1,6 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
-import { Alert, ChildProfile, UsageLog, DailyUsage } from "@/types/kidsafe";
+import { Alert, ChildProfile, UsageLog, DailyUsage, AppCategory } from "@/types/kidsafe";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "./AuthContext";
@@ -160,7 +160,7 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
         const alerts: Alert[] = data.map(alert => ({
           id: alert.id,
           childId: alert.child_id,
-          type: alert.type,
+          type: alert.type as "time_limit" | "blocked_website" | "new_app", // Cast to the specific union type
           message: alert.message,
           timestamp: alert.timestamp,
           read: alert.read
@@ -197,7 +197,7 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
           date: log.date,
           website: log.website,
           app: log.app,
-          category: log.category,
+          category: log.category as AppCategory, // Cast to the AppCategory type
           duration: log.duration,
           startTime: log.start_time,
           endTime: log.end_time
@@ -351,7 +351,7 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
         .from('alerts')
         .insert([{
           child_id: childId,
-          type: "time_limit",
+          type: "time_limit", // Using the specific string literal type
           message: `${child.name}'s device has been locked`,
           read: false
         }]);

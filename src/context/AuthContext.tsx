@@ -1,5 +1,5 @@
 
-import { User as KidsafeUser } from "@/types/kidsafe";
+import { User as KidsafeUser, UserRole } from "@/types/kidsafe";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -67,7 +67,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           id: profile.id,
           email: profile.email,
           name: profile.name,
-          role: profile.role,
+          role: profile.role as UserRole, // Cast the string to UserRole type
           avatar: profile.avatar
         });
       } else if (error) {
