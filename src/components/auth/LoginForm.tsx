@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -161,9 +160,8 @@ const LoginForm = () => {
                   {Array.from({ length: 6 }).map((_, index) => (
                     <InputOTPSlot 
                       key={index} 
-                      index={index}
-                      value={otp[index]}
-                      onChange={(value) => handleOTPChange(index, value)}
+                      index={index} 
+                      onChange={(value) => handleOTPChange(index, value as string)}
                     />
                   ))}
                 </InputOTPGroup>

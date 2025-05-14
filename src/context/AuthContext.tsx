@@ -1,4 +1,3 @@
-
 import { User as KidsafeUser, UserRole } from "@/types/kidsafe";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
@@ -219,8 +218,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       // On successful verification, the user will be automatically logged in
       // and the onAuthStateChange listener will update the user state
-      
-      return true;
     } catch (error) {
       console.error("OTP verification error:", error);
       throw error;

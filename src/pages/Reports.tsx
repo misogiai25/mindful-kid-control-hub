@@ -5,16 +5,28 @@ import { useKidSafe } from "@/context/KidSafeContext";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import UsageChart from "@/components/reports/UsageChart";
+import { toast } from "@/components/ui/use-toast";
+import { useEffect } from "react";
 
 const Reports = () => {
   const { user, isParent } = useAuth();
   const { children, selectedChild, setSelectedChild } = useKidSafe();
   
+  // Ensure only parents can access this page
   if (!user) {
     return <Navigate to="/login" />;
   }
   
   if (!isParent) {
+    // Show toast when a child tries to access this page
+    useEffect(() => {
+      toast({
+        title: "Access Denied",
+        description: "Only parents can view reports.",
+        variant: "destructive"
+      });
+    }, []);
+    
     return <Navigate to="/child" />;
   }
   
