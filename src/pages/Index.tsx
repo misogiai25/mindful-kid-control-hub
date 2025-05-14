@@ -1,12 +1,48 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { useAuth } from "@/context/AuthContext";
+import { Navigate } from "react-router-dom";
+import AddChildForm from "@/components/dashboard/AddChildForm";
+import ChildProfileCard from "@/components/dashboard/ChildProfileCard";
+import { useKidSafe } from "@/context/KidSafeContext";
 
 const Index = () => {
+  const { user, isParent, isChild } = useAuth();
+  const { children, selectedChild } = useKidSafe();
+  
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+  
+  // Child users should be redirected to their specific page
+  if (isChild) {
+    return <Navigate to="/child" />;
+  }
+  
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Children Profiles</h1>
+        <AddChildForm />
       </div>
+      
+      {children.length > 0 ? (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {children.map((child) => (
+            <ChildProfileCard 
+              key={child.id} 
+              child={child} 
+              isSelected={selectedChild?.id === child.id}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 bg-white rounded-lg border">
+          <h2 className="text-xl font-medium mb-2">No Child Profiles Yet</h2>
+          <p className="text-muted-foreground mb-6">
+            Add your first child profile to start monitoring their device usage.
+          </p>
+        </div>
+      )}
     </div>
   );
 };
