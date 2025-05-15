@@ -410,7 +410,7 @@ const LoginForm = () => {
                       value={selectedChildId}
                       onChange={(e) => setSelectedChildId(e.target.value)}
                     >
-                      {childProfiles.map(child => (
+                      {childProfiles.map((child) => (
                         <option key={child.id} value={child.id}>
                           {child.name}
                         </option>
