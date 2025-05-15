@@ -95,19 +95,18 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
   const fetchAllChildProfiles = async () => {
     try {
       console.log("Fetching all children for login dropdown");
-      const { data, error } = await supabase
-        .from('children')
-        .select(`
-          *,
-          blocked_websites(website)
-        `)
-        .order('name');
-        
+          const { data, error } = await supabase.from('children').select('*');
       if (error) {
         console.error('Error fetching all children:', error);
         return;
       }
-      
+console.log('Fetched child profiles:', data);
+    setChildProfiles(data);
+  } catch (e) {
+    console.error('Unexpected error fetching profiles:', e);
+  }
+};
+    
       if (data) {
         console.log("All children data received for login:", data);
         const formattedChildren: ChildProfile[] = data.map(child => ({
