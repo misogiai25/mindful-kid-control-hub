@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -42,7 +43,7 @@ const LoginForm = () => {
   const [pin, setPin] = useState("");
   const [currentView, setCurrentView] = useState<"login" | "signup" | "otp">("login");
   const [email, setEmail] = useState("");
-  const { otp, handleOTPChange, getOTPString, resetOTP } = useOTP(6);
+  const { otp, handleOTPChange: updateOTP, getOTPString, resetOTP } = useOTP(6);
   
   // Create forms
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -136,10 +137,10 @@ const LoginForm = () => {
     }
   };
   
-  const handleOTPChange = (index: number, value: string) => {
-    // Make sure to disambiguate between imported handleOTPChange and this function
-    if (otp && handleOTPChange) {
-      handleOTPChange(index, value);
+  // Helper function to handle OTP input changes
+  const handleOTPInputChange = (index: number, value: string) => {
+    if (updateOTP) {
+      updateOTP(index, value);
     }
   };
 
@@ -168,7 +169,7 @@ const LoginForm = () => {
                     <InputOTPSlot 
                       key={index} 
                       index={index} 
-                      onChange={(value) => handleOTPChange(index, value as string)}
+                      onChange={(value) => handleOTPInputChange(index, value as string)}
                     />
                   ))}
                 </InputOTPGroup>

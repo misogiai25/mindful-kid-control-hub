@@ -7,14 +7,14 @@ import { toast } from "@/components/ui/use-toast";
 
 const ParentLayout = () => {
   const { user, isParent } = useAuth();
-  const { loadChildProfiles } = useKidSafe();
+  const kidSafeContext = useKidSafe();
   
   useEffect(() => {
-    if (user && isParent && loadChildProfiles) {
+    if (user && isParent && kidSafeContext?.loadChildProfiles) {
       // Load child profiles for the logged-in parent
-      loadChildProfiles(user.id);
+      kidSafeContext.loadChildProfiles(user.id);
     }
-  }, [user, isParent, loadChildProfiles]);
+  }, [user, isParent, kidSafeContext]);
   
   // Redirect if not logged in or not a parent
   if (!user) {
