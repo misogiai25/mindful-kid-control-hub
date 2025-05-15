@@ -41,7 +41,7 @@ A modern parental control and screen time management application built with Reac
    ```sh
    npm run dev
    ```
-   The app will be available at [http://localhost:8080](http://localhost:8080)
+   The app will be available at [https://mindful-kid-control-hub.lovable.app/login]
 
 ## Usage
 
