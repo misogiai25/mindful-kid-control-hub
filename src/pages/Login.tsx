@@ -7,12 +7,14 @@ import { Navigate } from "react-router-dom";
 
 const Login = () => {
   const { user } = useAuth();
-  const { children: childProfiles } = useKidSafe();
+  const { children: childProfiles, fetchAllChildProfiles } = useKidSafe();
   
-  // Log child profiles for debugging
+  // Ensure child profiles are loaded on the login page
   useEffect(() => {
+    // Fetch all child profiles for login form
+    fetchAllChildProfiles();
     console.log("Child profiles in Login page:", childProfiles);
-  }, [childProfiles]);
+  }, [fetchAllChildProfiles]);
   
   // Redirect if already logged in
   if (user) {

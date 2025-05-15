@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import { Alert, ChildProfile, UsageLog, DailyUsage, AppCategory } from "@/types/kidsafe";
 import { useToast } from "@/components/ui/use-toast";
@@ -20,6 +21,7 @@ interface KidSafeContextType {
   markAlertAsRead: (alertId: string) => void;
   getChildById: (id: string) => ChildProfile | undefined;
   getUnreadAlertCount: () => number;
+  fetchAllChildProfiles: () => Promise<void>;
 }
 
 const KidSafeContext = createContext<KidSafeContextType | undefined>(undefined);
@@ -39,10 +41,12 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     console.log("KidSafeProvider useEffect triggered, user:", user);
     
-    // Always fetch children on mount, regardless of user role
+    // Fetch all children when the app loads for login purposes
+    fetchAllChildProfiles();
+    
+    // Fetch user-specific children if logged in
     if (user) {
       console.log("Fetching children for user:", user.id, user.role);
-      fetchChildren();
       
       // Set up realtime subscription for child profile updates
       const childrenChannel = supabase
@@ -51,15 +55,17 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
             { event: '*', schema: 'public', table: 'children' },
             (payload) => {
               console.log("Children table change detected:", payload);
-              fetchChildren(); // Refetch on any changes
+              if (user.role === 'parent') {
+                fetchChildren();
+              } else {
+                fetchAllChildProfiles(); // Update all profiles for child login
+              }
             })
         .subscribe();
         
       return () => {
         supabase.removeChannel(childrenChannel);
       };
-    } else {
-      console.log("No user found, not fetching children");
     }
   }, [user]);
 
@@ -84,49 +90,26 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [user]);
 
-  const fetchChildren = async () => {
-    console.log("fetchChildren called, user:", user);
-    if (!user) {
-      console.log("No user, can't fetch children");
-      return;
-    }
-    
+  // Function to fetch all child profiles regardless of login status
+  // This is used for the child login dropdown
+  const fetchAllChildProfiles = async () => {
     try {
-      let query;
-      
-      if (user.role === 'parent') {
-        // Fetch children for parent users
-        console.log("Fetching children for parent:", user.id);
-        query = supabase
-          .from('children')
-          .select(`
-            *,
-            blocked_websites(website)
-          `)
-          .eq('parent_id', user.id)
-          .order('name');
-      } else {
-        // For child users or any other case, fetch all children
-        // This allows child profiles to be visible in the login dropdown
-        console.log("Fetching all children");
-        query = supabase
-          .from('children')
-          .select(`
-            *,
-            blocked_websites(website)
-          `)
-          .order('name');
-      }
-      
-      const { data, error } = await query;
+      console.log("Fetching all children for login dropdown");
+      const { data, error } = await supabase
+        .from('children')
+        .select(`
+          *,
+          blocked_websites(website)
+        `)
+        .order('name');
         
       if (error) {
-        console.error('Error fetching children:', error);
+        console.error('Error fetching all children:', error);
         return;
       }
       
       if (data) {
-        console.log("Children data received:", data);
+        console.log("All children data received for login:", data);
         const formattedChildren: ChildProfile[] = data.map(child => ({
           id: child.id,
           name: child.name,
@@ -140,19 +123,68 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
           blockedWebsites: child.blocked_websites ? child.blocked_websites.map((bw: any) => bw.website) : []
         }));
         
-        console.log("Formatted children profiles:", formattedChildren);
+        console.log("Formatted all children profiles for login:", formattedChildren);
         setChildProfiles(formattedChildren);
-        
-        // If we have children but no selected child, select the first one
-        if (formattedChildren.length > 0 && !selectedChild) {
-          setSelectedChild(formattedChildren[0]);
+      }
+    } catch (error) {
+      console.error('Error in fetchAllChildProfiles:', error);
+    }
+  };
+
+  const fetchChildren = async () => {
+    console.log("fetchChildren called, user:", user);
+    if (!user) {
+      console.log("No user, can't fetch children");
+      return;
+    }
+    
+    try {
+      if (user.role === 'parent') {
+        // Fetch children for parent users
+        console.log("Fetching children for parent:", user.id);
+        const { data, error } = await supabase
+          .from('children')
+          .select(`
+            *,
+            blocked_websites(website)
+          `)
+          .eq('parent_id', user.id)
+          .order('name');
+          
+        if (error) {
+          console.error('Error fetching children:', error);
+          return;
         }
         
-        // Load usage data for each child
-        formattedChildren.forEach(child => {
-          fetchUsageLogs(child.id);
-          generateMockWeeklyData(child.id); // TODO: Replace with real data
-        });
+        if (data) {
+          console.log("Children data received:", data);
+          const formattedChildren: ChildProfile[] = data.map(child => ({
+            id: child.id,
+            name: child.name,
+            age: child.age || 0,
+            avatar: child.avatar || `/placeholder.svg`,
+            deviceId: child.device_id,
+            dailyTimeLimit: child.daily_time_limit,
+            usedTime: child.used_time,
+            isOnline: child.is_online,
+            isLocked: child.is_locked,
+            blockedWebsites: child.blocked_websites ? child.blocked_websites.map((bw: any) => bw.website) : []
+          }));
+          
+          console.log("Formatted children profiles:", formattedChildren);
+          setChildProfiles(formattedChildren);
+          
+          // If we have children but no selected child, select the first one
+          if (formattedChildren.length > 0 && !selectedChild) {
+            setSelectedChild(formattedChildren[0]);
+          }
+          
+          // Load usage data for each child
+          formattedChildren.forEach(child => {
+            fetchUsageLogs(child.id);
+            generateMockWeeklyData(child.id); // TODO: Replace with real data
+          });
+        }
       }
     } catch (error) {
       console.error('Error in fetchChildren:', error);
@@ -313,7 +345,11 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
           description: `Profile for ${child.name} has been created successfully.`,
         });
         
-        // Fetch children will be triggered by realtime subscription
+        // Fetch updated data for both logged-in users and login screen
+        fetchAllChildProfiles();
+        if (user.role === 'parent') {
+          fetchChildren();
+        }
       }
     } catch (error) {
       console.error("Error in addChild:", error);
@@ -545,6 +581,7 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
         markAlertAsRead,
         getChildById,
         getUnreadAlertCount,
+        fetchAllChildProfiles
       }}
     >
       {children}

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useKidSafe } from "@/context/KidSafeContext";
+import { Spinner } from "@/components/ui/spinner";
 
 // Create validation schemas
 const loginSchema = z.object({
@@ -37,12 +39,29 @@ const signupSchema = z.object({
 const LoginForm = () => {
   const { login, signup, verifyOTP, requestOTP, childLogin, isLoading } = useAuth();
   const { toast } = useToast();
-  const { children: childProfiles } = useKidSafe();
+  const { children: childProfiles, fetchAllChildProfiles } = useKidSafe();
   const [selectedChildId, setSelectedChildId] = useState("");
   const [pin, setPin] = useState("");
   const [currentView, setCurrentView] = useState<"login" | "signup" | "otp">("login");
   const [email, setEmail] = useState("");
+  const [loadingChildren, setLoadingChildren] = useState(true);
   const { otp, handleOTPChange: updateOTP, getOTPString, resetOTP } = useOTP(6);
+  
+  // Fetch all child profiles when the login form loads
+  useEffect(() => {
+    const fetchChildren = async () => {
+      setLoadingChildren(true);
+      try {
+        await fetchAllChildProfiles();
+      } catch (error) {
+        console.error("Error fetching children for login:", error);
+      } finally {
+        setLoadingChildren(false);
+      }
+    };
+    
+    fetchChildren();
+  }, [fetchAllChildProfiles]);
   
   // Set default child when profiles are loaded
   useEffect(() => {
@@ -95,6 +114,14 @@ const LoginForm = () => {
   
   const handleChildLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedChildId) {
+      toast({
+        title: "Select a child profile",
+        description: "Please select a child profile to continue",
+        variant: "destructive"
+      });
+      return;
+    }
     await childLogin(pin, selectedChildId);
   };
 
@@ -371,7 +398,12 @@ const LoginForm = () => {
               <form onSubmit={handleChildLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="child">Select Child</Label>
-                  {childProfiles && childProfiles.length > 0 ? (
+                  {loadingChildren ? (
+                    <div className="flex items-center justify-center py-4">
+                      <Spinner size="sm" className="mr-2" />
+                      <span className="text-sm text-muted-foreground">Loading child profiles...</span>
+                    </div>
+                  ) : childProfiles && childProfiles.length > 0 ? (
                     <select
                       id="child"
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
