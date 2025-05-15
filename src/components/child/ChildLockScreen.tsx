@@ -1,44 +1,43 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { User } from "@/types/kidsafe";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
-import { Clock, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 
-const ChildLockScreen = ({ user }: { user: User }) => {
+interface ChildLockScreenProps {
+  user: User;
+}
+
+const ChildLockScreen = ({ user }: ChildLockScreenProps) => {
   const { logout } = useAuth();
   
   return (
-    <div className="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
-      <Card className="w-full animate-pulse-slow border-kidsafe-red">
-        <CardHeader>
-          <Lock className="h-8 w-8 mx-auto text-kidsafe-red" />
-          <CardTitle className="text-kidsafe-red text-2xl">Device Locked</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <p className="text-lg">
-            Hi {user.name}, your screen time is up for today.
+    <Card className="w-full max-w-md mx-auto border-kidsafe-red">
+      <CardHeader>
+        <CardTitle className="flex items-center justify-center gap-2">
+          <Lock className="h-5 w-5" />
+          Device Locked
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-8 text-center">
+        <div>
+          <h2 className="text-xl font-medium">Hi {user.name}</h2>
+          <p className="mt-4 text-muted-foreground">
+            Your access has been temporarily restricted by your parent.
           </p>
-          
-          <div className="flex items-center justify-center gap-2 text-muted-foreground">
-            <Clock className="h-5 w-5" />
-            <span>Your device will unlock tomorrow</span>
-          </div>
-          
-          <p className="text-sm text-muted-foreground">
-            Please contact your parents if you need access for schoolwork or other important activities.
+          <p className="mt-2 text-muted-foreground">
+            Please check back later or contact your parent for help.
           </p>
-          
-          <Button 
-            variant="outline"
-            onClick={logout}
-            className="mt-8"
-          >
+        </div>
+        
+        <div className="flex justify-center pt-4">
+          <Button variant="outline" onClick={logout}>
             Log out
           </Button>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
