@@ -49,10 +49,9 @@ const LoginForm = () => {
   
   // Fetch all child profiles when the login form loads
   useEffect(() => {
-    const fetchChildren = async () => {
-      setLoadingChildren(true);
-      try {
-        await fetchAllChildProfiles();
+  fetchAllChildProfiles();
+}, [fetchAllChildProfiles]);
+  
       } catch (error) {
         console.error("Error fetching children for login:", error);
       } finally {
