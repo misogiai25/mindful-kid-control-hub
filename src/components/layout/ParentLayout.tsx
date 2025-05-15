@@ -10,7 +10,7 @@ const ParentLayout = () => {
   const { loadChildProfiles } = useKidSafe();
   
   useEffect(() => {
-    if (user && isParent) {
+    if (user && isParent && loadChildProfiles) {
       // Load child profiles for the logged-in parent
       loadChildProfiles(user.id);
     }

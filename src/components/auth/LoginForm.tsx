@@ -136,6 +136,13 @@ const LoginForm = () => {
     }
   };
   
+  const handleOTPChange = (index: number, value: string) => {
+    // Make sure to disambiguate between imported handleOTPChange and this function
+    if (otp && handleOTPChange) {
+      handleOTPChange(index, value);
+    }
+  };
+
   return (
     <Card className="w-full max-w-md">
       <CardHeader>

@@ -1,3 +1,4 @@
+
 import { User as KidsafeUser, UserRole } from "@/types/kidsafe";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/components/ui/use-toast";
@@ -159,7 +160,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         description: "Please verify your email to continue",
       });
       
-      return data;
+      // Don't return data, just return without a value for Promise<void>
     } catch (error) {
       console.error("Signup error:", error);
       toast({
