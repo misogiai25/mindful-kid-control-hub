@@ -13,9 +13,9 @@ const ParentLayout = () => {
     if (user && isParent && kidSafeContext) {
       // Load child profiles for the logged-in parent
       try {
-        if (typeof kidSafeContext.loadChildProfiles === 'function') {
-          kidSafeContext.loadChildProfiles(user.id);
-        }
+        // The loadChildProfiles function doesn't exist in the KidSafeContextType interface
+        // Instead, we'll use the fetchChildren functionality that's already implemented
+        // No extra call needed as the KidSafeProvider already loads children profiles when a parent logs in
       } catch (error) {
         console.error("Failed to load child profiles:", error);
       }
