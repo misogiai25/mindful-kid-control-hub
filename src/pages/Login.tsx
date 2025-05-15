@@ -1,10 +1,18 @@
 
+import { useEffect } from "react";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/context/AuthContext";
+import { useKidSafe } from "@/context/KidSafeContext";
 import { Navigate } from "react-router-dom";
 
 const Login = () => {
   const { user } = useAuth();
+  const { children: childProfiles } = useKidSafe();
+  
+  // Log child profiles for debugging
+  useEffect(() => {
+    console.log("Child profiles in Login page:", childProfiles);
+  }, [childProfiles]);
   
   // Redirect if already logged in
   if (user) {

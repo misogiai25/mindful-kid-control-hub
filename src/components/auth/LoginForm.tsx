@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -45,9 +44,10 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const { otp, handleOTPChange: updateOTP, getOTPString, resetOTP } = useOTP(6);
   
-  // Fix: Change useState to useEffect for setting default child
+  // Set default child when profiles are loaded
   useEffect(() => {
-    if (childProfiles.length > 0 && !selectedChildId) {
+    if (childProfiles && childProfiles.length > 0 && !selectedChildId) {
+      console.log("Setting default child ID:", childProfiles[0].id);
       setSelectedChildId(childProfiles[0].id);
     }
   }, [childProfiles, selectedChildId]);
@@ -400,17 +400,17 @@ const LoginForm = () => {
                     placeholder="••••"
                     maxLength={4}
                     required
-                    disabled={childProfiles.length === 0}
+                    disabled={!childProfiles || childProfiles.length === 0}
                   />
                 </div>
                 <Button
                   type="submit"
                   className="w-full bg-kidsafe-purple hover:bg-kidsafe-purple/90"
-                  disabled={isLoading || childProfiles.length === 0}
+                  disabled={isLoading || !childProfiles || childProfiles.length === 0}
                 >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
-                {childProfiles.length > 0 && (
+                {childProfiles && childProfiles.length > 0 && (
                   <p className="text-xs text-center text-muted-foreground pt-2">
                     Demo PIN for all children: 1234
                   </p>
