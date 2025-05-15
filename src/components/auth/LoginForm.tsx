@@ -40,8 +40,8 @@ const LoginForm = () => {
   const { login, signup, verifyOTP, requestOTP, childLogin, isLoading } = useAuth();
   const { toast } = useToast();
   const { children: childProfiles, fetchAllChildProfiles } = useKidSafe();
-  const [selectedChildId, setSelectedChildId] = useState("");
-  const [pin, setPin] = useState("");
+  const [selectedChildName, setSelectedChildName] = useState("");
+  const [pin, setPin] = useState("1234");
   const [currentView, setCurrentView] = useState<"login" | "signup" | "otp">("login");
   const [email, setEmail] = useState("");
   const [loadingChildren, setLoadingChildren] = useState(true);
@@ -114,15 +114,30 @@ const LoginForm = () => {
   
   const handleChildLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedChildId) {
-      toast({
-        title: "Select a child profile",
-        description: "Please select a child profile to continue",
-        variant: "destructive"
-      });
-      return;
-    }
-    await childLogin(pin, selectedChildId);
+    if (!selectedChildName) {
+  toast({
+    title: "Enter a child's name",
+    description: "Please enter the child's name to continue",
+    variant: "destructive",
+  });
+  return;
+}
+
+const childProfile = childProfiles.find(
+  (profile) => profile.name.toLowerCase() === selectedChildName.toLowerCase()
+);
+
+if (!childProfile) {
+  toast({
+    title: "Child not found",
+    description: "No profile matches the entered name. Please check the name.",
+    variant: "destructive",
+  });
+  return;
+}
+
+await childLogin(pin, childProfile.id);
+    
   };
 
   const handleResendOTP = async () => {
