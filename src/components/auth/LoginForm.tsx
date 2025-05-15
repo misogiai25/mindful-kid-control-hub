@@ -410,11 +410,14 @@ const LoginForm = () => {
                       value={selectedChildId}
                       onChange={(e) => setSelectedChildId(e.target.value)}
                     >
-                      {childProfiles.map((child) => (
-                        <option key={child.id} value={child.id}>
-                          {child.name}
-                        </option>
-                      ))}
+                      <Input
+                      id="childName"
+                      value={selectedChildName}
+                      onChange={(e) => setSelectedChildName(e.target.value)}
+                      placeholder="Enter child's name"
+                      required
+                      />
+                      
                     </select>
                   ) : (
                     <div className="text-sm text-muted-foreground py-2">
