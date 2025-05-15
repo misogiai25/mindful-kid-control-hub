@@ -1,13 +1,12 @@
-
 import { useState } from "react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { children } from "@/data/mockData";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { 
   InputOTP, 
   InputOTPGroup, 
@@ -18,7 +17,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Mail } from "lucide-react";
 
 // Create validation schemas
 const loginSchema = z.object({
@@ -140,7 +138,7 @@ const LoginForm = () => {
   // Helper function to handle OTP input changes
   const handleOTPInputChange = (index: number, value: string) => {
     if (updateOTP) {
-      updateOTP(index, value);
+      updateOTP(index, value ? value.toString() : "");
     }
   };
 
@@ -169,7 +167,7 @@ const LoginForm = () => {
                     <InputOTPSlot 
                       key={index} 
                       index={index} 
-                      onChange={(value) => handleOTPInputChange(index, value as string)}
+                      onChange={(value) => handleOTPInputChange(index, value ? value.toString() : "")}
                     />
                   ))}
                 </InputOTPGroup>

@@ -1,7 +1,6 @@
-
 import { User as KidsafeUser, UserRole } from "@/types/kidsafe";
 import { createContext, useContext, useEffect, useState } from "react";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 import { useNavigate } from "react-router-dom";
@@ -198,7 +197,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const verifyOTP = async (email: string, token: string) => {
+  const verifyOTP = async (email: string, token: string): Promise<void> => {
     try {
       setIsLoading(true);
       
@@ -227,7 +226,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const childLogin = async (pin: string, childId: string) => {
+  const childLogin = async (pin: string, childId: string): Promise<void> => {
     try {
       setIsLoading(true);
       

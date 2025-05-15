@@ -3,16 +3,22 @@ import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useKidSafe } from "@/context/KidSafeContext";
 import { Navigate, Outlet } from "react-router-dom";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 
 const ParentLayout = () => {
   const { user, isParent } = useAuth();
   const kidSafeContext = useKidSafe();
   
   useEffect(() => {
-    if (user && isParent && kidSafeContext?.loadChildProfiles) {
+    if (user && isParent && kidSafeContext) {
       // Load child profiles for the logged-in parent
-      kidSafeContext.loadChildProfiles(user.id);
+      try {
+        if (typeof kidSafeContext.loadChildProfiles === 'function') {
+          kidSafeContext.loadChildProfiles(user.id);
+        }
+      } catch (error) {
+        console.error("Failed to load child profiles:", error);
+      }
     }
   }, [user, isParent, kidSafeContext]);
   
