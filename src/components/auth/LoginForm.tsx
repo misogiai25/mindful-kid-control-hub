@@ -5,8 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { children } from "@/data/mockData";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/components/ui/use-toast";
 import { 
   InputOTP, 
   InputOTPGroup, 
@@ -17,6 +16,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useKidSafe } from "@/context/KidSafeContext";
 
 // Create validation schemas
 const loginSchema = z.object({
@@ -37,11 +37,19 @@ const signupSchema = z.object({
 const LoginForm = () => {
   const { login, signup, verifyOTP, requestOTP, childLogin, isLoading } = useAuth();
   const { toast } = useToast();
-  const [selectedChildId, setSelectedChildId] = useState("c1");
+  const { children: childProfiles } = useKidSafe();
+  const [selectedChildId, setSelectedChildId] = useState("");
   const [pin, setPin] = useState("");
   const [currentView, setCurrentView] = useState<"login" | "signup" | "otp">("login");
   const [email, setEmail] = useState("");
   const { otp, handleOTPChange: updateOTP, getOTPString, resetOTP } = useOTP(6);
+  
+  // Set first child as default when profiles are loaded
+  useState(() => {
+    if (childProfiles.length > 0 && !selectedChildId) {
+      setSelectedChildId(childProfiles[0].id);
+    }
+  }, [childProfiles, selectedChildId]);
   
   // Create forms
   const loginForm = useForm<z.infer<typeof loginSchema>>({
@@ -358,18 +366,24 @@ const LoginForm = () => {
               <form onSubmit={handleChildLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="child">Select Child</Label>
-                  <select
-                    id="child"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                    value={selectedChildId}
-                    onChange={(e) => setSelectedChildId(e.target.value)}
-                  >
-                    {children.map(child => (
-                      <option key={child.id} value={child.id}>
-                        {child.name}
-                      </option>
-                    ))}
-                  </select>
+                  {childProfiles.length > 0 ? (
+                    <select
+                      id="child"
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      value={selectedChildId}
+                      onChange={(e) => setSelectedChildId(e.target.value)}
+                    >
+                      {childProfiles.map(child => (
+                        <option key={child.id} value={child.id}>
+                          {child.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="text-sm text-muted-foreground py-2">
+                      No child profiles available. A parent must add child profiles first.
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pin">PIN Code</Label>
@@ -381,18 +395,21 @@ const LoginForm = () => {
                     placeholder="••••"
                     maxLength={4}
                     required
+                    disabled={childProfiles.length === 0}
                   />
                 </div>
                 <Button
                   type="submit"
                   className="w-full bg-kidsafe-purple hover:bg-kidsafe-purple/90"
-                  disabled={isLoading}
+                  disabled={isLoading || childProfiles.length === 0}
                 >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
-                <p className="text-xs text-center text-muted-foreground pt-2">
-                  Demo PIN for all children: 1234
-                </p>
+                {childProfiles.length > 0 && (
+                  <p className="text-xs text-center text-muted-foreground pt-2">
+                    Demo PIN for all children: 1234
+                  </p>
+                )}
               </form>
             </TabsContent>
           </Tabs>

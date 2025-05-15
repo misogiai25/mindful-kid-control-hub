@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 import { useKidSafe } from "@/context/KidSafeContext";
 import ChildLockScreen from "@/components/child/ChildLockScreen";
 import ChildTimeDisplay from "@/components/child/ChildTimeDisplay";
+import { Spinner } from "@/components/ui/spinner";
 
 const ChildDashboard = () => {
   const { user, isChild } = useAuth();
@@ -15,6 +16,16 @@ const ChildDashboard = () => {
   
   if (!isChild) {
     return <Navigate to="/" />;
+  }
+  
+  // Display loading state while waiting for child profiles to load
+  if (children.length === 0) {
+    return (
+      <div className="h-full flex flex-col items-center justify-center px-4">
+        <Spinner className="mb-4" />
+        <p className="text-muted-foreground">Loading child profile...</p>
+      </div>
+    );
   }
   
   // Find the child profile that matches the logged in child user
