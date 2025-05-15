@@ -314,6 +314,21 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+
+  const addChild = async (child) => {
+  const { data, error } = await supabase
+    .from('children')
+    .insert([child])
+    .select();
+  if (error) {
+    console.error('Error adding child:', error);
+  }
+  if (data) {
+    console.log('Child profile added:', data);
+    fetchAllChildProfiles(); // Ensures profiles are refreshed
+  }
+};
+  
   const addChild = async (child: Omit<ChildProfile, "id" | "usedTime" | "isOnline" | "isLocked">) => {
     if (!user) return;
     
