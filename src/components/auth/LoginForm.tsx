@@ -50,6 +50,7 @@ const LoginForm = () => {
   // Fetch all child profiles when the login form loads
   useEffect(() => {
   fetchAllChildProfiles();
+  console.log("Child profiles in LoginForm:", childProfiles);
 }, [fetchAllChildProfiles]);
   
       } catch (error) {
