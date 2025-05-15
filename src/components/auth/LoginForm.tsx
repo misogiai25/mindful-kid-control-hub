@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,8 +45,8 @@ const LoginForm = () => {
   const [email, setEmail] = useState("");
   const { otp, handleOTPChange: updateOTP, getOTPString, resetOTP } = useOTP(6);
   
-  // Set first child as default when profiles are loaded
-  useState(() => {
+  // Fix: Change useState to useEffect for setting default child
+  useEffect(() => {
     if (childProfiles.length > 0 && !selectedChildId) {
       setSelectedChildId(childProfiles[0].id);
     }
