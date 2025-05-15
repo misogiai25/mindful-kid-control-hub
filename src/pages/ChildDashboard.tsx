@@ -22,7 +22,7 @@ const ChildDashboard = () => {
   if (children.length === 0) {
     return (
       <div className="h-full flex flex-col items-center justify-center px-4">
-        <Spinner className="mb-4" />
+        <Spinner size="lg" className="mb-4" />
         <p className="text-muted-foreground">Loading child profile...</p>
       </div>
     );
