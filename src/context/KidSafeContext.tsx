@@ -93,20 +93,14 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
   // Function to fetch all child profiles regardless of login status
   // This is used for the child login dropdown
   const fetchAllChildProfiles = async () => {
-    try {
-      console.log("Fetching all children for login dropdown");
-      const { data, error } = await supabase
-        .from('children')
-        .select(`
-          *,
-          blocked_websites(website)
-        `)
-        .order('name');
-        
-      if (error) {
-        console.error('Error fetching all children:', error);
-        return;
-      }
+  const { data, error } = await supabase.from('children').select('*');
+  if (error) {
+    console.error('Error fetching child profiles:', error);
+    return;
+  }
+  console.log('Fetched child profiles:', data);
+  setChildProfiles(data);
+};
       
       if (data) {
         console.log("All children data received for login:", data);
