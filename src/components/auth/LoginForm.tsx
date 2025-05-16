@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useKidSafe } from "@/context/KidSafeContext";
 import { Spinner } from "@/components/ui/spinner";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Create validation schemas
 const loginSchema = z.object({
@@ -121,7 +123,29 @@ const LoginForm = () => {
       });
       return;
     }
-    await childLogin(pin, selectedChildId);
+
+    // Find the child's name by their ID to pass to the childLogin function
+    const selectedChild = childProfiles.find(child => child.id === selectedChildId);
+    if (!selectedChild) {
+      toast({
+        title: "Child profile not found",
+        description: "The selected child profile could not be found",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Pass the child's actual name as the second parameter
+      await childLogin(pin, selectedChild.name);
+    } catch (error) {
+      console.error("Child login error:", error);
+      toast({
+        title: "Login failed",
+        description: "Could not log in with the provided details",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleResendOTP = async () => {
@@ -394,41 +418,60 @@ const LoginForm = () => {
             </TabsContent>
             
             <TabsContent value="child">
-              <form onSubmit={handleChildLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="childName">Child Name</Label>
-                  <Input 
-                    id="childName"
-                    type="text"
-                    value={selectedChildId}
-                    onChange={(e) => setSelectedChildId(e.target.value)}
-                    placeholder="Enter child's name"
-                    required
-                  />
+              {loadingChildren ? (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <Spinner size="lg" className="mb-4" />
+                  <p className="text-muted-foreground">Loading child profiles...</p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="pin">PIN Code</Label>
-                  <Input 
-                    id="pin" 
-                    type="password"
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    placeholder="••••"
-                    maxLength={4}
-                    required
-                  />
+              ) : childProfiles.length === 0 ? (
+                <div className="text-center py-8 space-y-4">
+                  <p className="text-red-500">No child profiles available.</p>
+                  <p className="text-muted-foreground">A parent must add child profiles first.</p>
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-kidsafe-purple hover:bg-kidsafe-purple/90"
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Logging in..." : "Login"}
-                </Button>
-                <p className="text-xs text-center text-muted-foreground pt-2">
-                  Demo PIN: 1234
-                </p>
-              </form>
+              ) : (
+                <form onSubmit={handleChildLogin} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="childSelect">Select Child</Label>
+                    <Select 
+                      value={selectedChildId} 
+                      onValueChange={setSelectedChildId}
+                    >
+                      <SelectTrigger className="w-full" id="childSelect">
+                        <SelectValue placeholder="Select a child" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {childProfiles.map((child) => (
+                          <SelectItem key={child.id} value={child.id}>
+                            {child.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="pin">PIN Code</Label>
+                    <Input 
+                      id="pin" 
+                      type="password"
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value)}
+                      placeholder="••••"
+                      maxLength={4}
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="w-full bg-kidsafe-purple hover:bg-kidsafe-purple/90"
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Logging in..." : "Login"}
+                  </Button>
+                  <p className="text-xs text-center text-muted-foreground pt-2">
+                    Demo PIN: 1234
+                  </p>
+                </form>
+              )}
             </TabsContent>
           </Tabs>
         )}

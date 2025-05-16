@@ -1,3 +1,4 @@
+
 import { User as KidsafeUser, UserRole } from "@/types/kidsafe";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -229,6 +230,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const childLogin = async (pin: string, childName: string): Promise<void> => {
     try {
       setIsLoading(true);
+      console.log(`Attempting to login child with name: ${childName} and PIN: ${pin}`);
       
       // For simplicity, child login is still mocked for now
       // In a real-world scenario, this would validate against a pin stored in the database
@@ -241,6 +243,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           .single();
         
         if (error || !childData) {
+          console.error("Error fetching child profile:", error);
           toast({
             title: "Login failed",
             description: "Child profile not found. Please check the name and try again.",
@@ -248,6 +251,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           });
           return;
         }
+        
+        console.log("Found child data:", childData);
         
         const childProfile: KidsafeUser = {
           id: childData.id,
