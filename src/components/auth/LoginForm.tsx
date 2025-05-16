@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -40,8 +39,8 @@ const LoginForm = () => {
   const { login, signup, verifyOTP, requestOTP, childLogin, isLoading } = useAuth();
   const { toast } = useToast();
   const { children: childProfiles, fetchAllChildProfiles } = useKidSafe();
-  const [selectedChildName, setSelectedChildName] = useState("");
-  const [pin, setPin] = useState("1234");
+  const [selectedChildId, setSelectedChildId] = useState("");
+  const [pin, setPin] = useState("");
   const [currentView, setCurrentView] = useState<"login" | "signup" | "otp">("login");
   const [email, setEmail] = useState("");
   const [loadingChildren, setLoadingChildren] = useState(true);
@@ -49,10 +48,10 @@ const LoginForm = () => {
   
   // Fetch all child profiles when the login form loads
   useEffect(() => {
-  fetchAllChildProfiles();
-  console.log("Child profiles in LoginForm:", childProfiles);
-}, [fetchAllChildProfiles]);
-  
+    const fetchChildren = async () => {
+      setLoadingChildren(true);
+      try {
+        await fetchAllChildProfiles();
       } catch (error) {
         console.error("Error fetching children for login:", error);
       } finally {
@@ -114,30 +113,15 @@ const LoginForm = () => {
   
   const handleChildLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedChildName) {
-  toast({
-    title: "Enter a child's name",
-    description: "Please enter the child's name to continue",
-    variant: "destructive",
-  });
-  return;
-}
-
-const childProfile = childProfiles.find(
-  (profile) => profile.name.toLowerCase() === selectedChildName.toLowerCase()
-);
-
-if (!childProfile) {
-  toast({
-    title: "Child not found",
-    description: "No profile matches the entered name. Please check the name.",
-    variant: "destructive",
-  });
-  return;
-}
-
-await childLogin(pin, childProfile.id);
-    
+    if (!selectedChildId) {
+      toast({
+        title: "Select a child profile",
+        description: "Please select a child profile to continue",
+        variant: "destructive"
+      });
+      return;
+    }
+    await childLogin(pin, selectedChildId);
   };
 
   const handleResendOTP = async () => {
@@ -412,33 +396,15 @@ await childLogin(pin, childProfile.id);
             <TabsContent value="child">
               <form onSubmit={handleChildLogin} className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="child">Select Child</Label>
-                  {loadingChildren ? (
-                    <div className="flex items-center justify-center py-4">
-                      <Spinner size="sm" className="mr-2" />
-                      <span className="text-sm text-muted-foreground">Loading child profiles...</span>
-                    </div>
-                  ) : childProfiles && childProfiles.length > 0 ? (
-                    <select
-                      id="child"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      value={selectedChildId}
-                      onChange={(e) => setSelectedChildId(e.target.value)}
-                    >
-                      <Input
-                      id="childName"
-                      value={selectedChildName}
-                      onChange={(e) => setSelectedChildName(e.target.value)}
-                      placeholder="Enter child's name"
-                      required
-                      />
-                      
-                    </select>
-                  ) : (
-                    <div className="text-sm text-muted-foreground py-2">
-                      No child profiles available. A parent must add child profiles first.
-                    </div>
-                  )}
+                  <Label htmlFor="childName">Child Name</Label>
+                  <Input 
+                    id="childName"
+                    type="text"
+                    value={selectedChildId}
+                    onChange={(e) => setSelectedChildId(e.target.value)}
+                    placeholder="Enter child's name"
+                    required
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="pin">PIN Code</Label>
@@ -450,21 +416,18 @@ await childLogin(pin, childProfile.id);
                     placeholder="••••"
                     maxLength={4}
                     required
-                    disabled={!childProfiles || childProfiles.length === 0}
                   />
                 </div>
                 <Button
                   type="submit"
                   className="w-full bg-kidsafe-purple hover:bg-kidsafe-purple/90"
-                  disabled={isLoading || !childProfiles || childProfiles.length === 0}
+                  disabled={isLoading}
                 >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
-                {childProfiles && childProfiles.length > 0 && (
-                  <p className="text-xs text-center text-muted-foreground pt-2">
-                    Demo PIN for all children: 1234
-                  </p>
-                )}
+                <p className="text-xs text-center text-muted-foreground pt-2">
+                  Demo PIN: 1234
+                </p>
               </form>
             </TabsContent>
           </Tabs>

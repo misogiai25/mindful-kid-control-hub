@@ -15,7 +15,7 @@ interface AuthContextType {
   requestOTP: (email: string) => Promise<void>;
   verifyOTP: (email: string, token: string) => Promise<void>;
   logout: () => void;
-  childLogin: (pin: string, childId: string) => Promise<void>;
+  childLogin: (pin: string, childName: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -226,32 +226,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const childLogin = async (pin: string, childId: string): Promise<void> => {
+  const childLogin = async (pin: string, childName: string): Promise<void> => {
     try {
       setIsLoading(true);
       
       // For simplicity, child login is still mocked for now
       // In a real-world scenario, this would validate against a pin stored in the database
       if (pin === "1234") {
-        // Get child data from our database
+        // Get child data from our database by name
         const { data: childData, error } = await supabase
           .from('children')
           .select('*')
-          .eq('id', childId)
+          .ilike('name', childName)
           .single();
         
         if (error || !childData) {
           toast({
             title: "Login failed",
-            description: "Invalid child profile",
+            description: "Child profile not found. Please check the name and try again.",
             variant: "destructive",
           });
           return;
         }
         
         const childProfile: KidsafeUser = {
-          id: childId,
-          email: `child_${childId}@example.com`, // Placeholder
+          id: childData.id,
+          email: `child_${childData.id}@example.com`, // Placeholder
           name: childData.name,
           role: "child" as const,
           avatar: childData.avatar

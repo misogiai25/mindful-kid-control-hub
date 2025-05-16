@@ -93,19 +93,20 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
   // Function to fetch all child profiles regardless of login status
   // This is used for the child login dropdown
   const fetchAllChildProfiles = async () => {
-  try {
-    console.log("Fetching all child profiles...");
-    const { data, error } = await supabase.from('children').select('*');
-    if (error) {
-      console.error("Error fetching child profiles:", error);
-      return;
-    }
-    console.log("Fetched child profiles:", data);
-    setChildProfiles(data);
-  } catch (e) {
-    console.error("Unexpected error fetching profiles:", e);
-  }
-};
+    try {
+      console.log("Fetching all children for login dropdown");
+      const { data, error } = await supabase
+        .from('children')
+        .select(`
+          *,
+          blocked_websites(website)
+        `)
+        .order('name');
+        
+      if (error) {
+        console.error('Error fetching all children:', error);
+        return;
+      }
       
       if (data) {
         console.log("All children data received for login:", data);
@@ -313,21 +314,6 @@ export const KidSafeProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
-
-  const addChild = async (child) => {
-  const { data, error } = await supabase
-    .from('children')
-    .insert([child])
-    .select();
-  if (error) {
-    console.error('Error adding child:', error);
-  }
-  if (data) {
-    console.log('Child profile added:', data);
-    fetchAllChildProfiles(); // Ensures profiles are refreshed
-  }
-};
-  
   const addChild = async (child: Omit<ChildProfile, "id" | "usedTime" | "isOnline" | "isLocked">) => {
     if (!user) return;
     
